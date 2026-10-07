@@ -1,36 +1,33 @@
-import numpy as np
-import polars as pl
+# 🌉 Infrastructure Asset Lifecycle Analytics Pipeline
 
-# Generate Mock Sensor Streams from Infrastructure Assets (e.g., Bridges/Pavements)
-n_rows = 50000
-data = pl.DataFrame(
-    {
-        "asset_id": np.random.choice(
-            ["Bridge_01", "Bridge_02", "Tunnel_A", "Tunnel_B"], n_rows
-        ),
-        "vibration_hz": np.random.normal(50.0, 10.0, n_rows),
-        "strain_gauge_val": np.random.uniform(100.0, 500.0, n_rows),
-        "temperature_c": np.random.uniform(-10.0, 45.0, n_rows),
-    }
-)
+A high-performance data processing pipeline built with `Polars` designed to ingest large-scale structural sensor streams, detect mechanical strain anomalies, and compute asset degradation states for proactive maintenance.
 
-# High-Performance Data Transformation using Polars
-processed = (
-    data.filter(pl.col("temperature_c") > 0)
-    .group_by("asset_id")
-    .agg(
-        [
-            pl.col("vibration_hz").mean().alias("avg_vibration"),
-            pl.col("strain_gauge_val").max().alias("max_strain"),
-            pl.col("vibration_hz").count().alias("reading_count"),
-        ]
-    )
-    .with_columns(
-        pl.when(pl.col("max_strain") > 450.0)
-        .then(pl.lit("CRITICAL"))
-        .otherwise(pl.lit("NORMAL"))
-        .alias("health_status")
-    )
-)
+## 📌 Key Capabilities
+- **High-Throughput Vectorized ETL:** Leverages `Polars` parallel execution for ultra-fast aggregation and processing of telemetry data streams.
+- **Structural Anomaly Detection:** Applies rule-based thresholds on sensor inputs (strain gauges, vibration sensors) to categorize asset risk levels.
+- **Lifecycle Health Aggregation:** Computes operational health status indicators across civil infrastructure assets (bridges, tunnels, pavements).
 
-print(processed)
+## 📐 System Architecture
+```text
+[ Sensor Stream Telemetry (Vibration / Strain / Temp) ]
+                         │
+                         ▼
+             ┌──────────────────────┐
+             │ Polars High-Speed    │
+             │ Data Ingestion Engine│
+             └───────────┬──────────┘
+                         │
+                         ▼
+             ┌──────────────────────┐
+             │ Parallel Filtering & │
+             │ Feature Aggregation  │
+             └───────────┬──────────┘
+                         │
+                         ▼
+             ┌──────────────────────┐
+             │ Anomaly Evaluator    │
+             │ & Health Classifier  │
+             └───────────┬──────────┘
+                         │
+                         ▼
+        [ Executive Asset Health Dashboard Feed ]
